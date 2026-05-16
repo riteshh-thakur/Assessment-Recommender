@@ -12,14 +12,15 @@ chromadb==1.0.15
 
 sentence-transformers==5.0.0
 transformers==4.55.0
-torch>=2.7.0
+
+torch==2.3.1
 
 numpy==2.3.2
 
-playwright==1.54.0
 beautifulsoup4==4.13.4
 httpx==0.28.1
 python-dotenv==1.1.1
 requests==2.32.4
 tenacity==9.1.2
+
 pytest==8.4.1
