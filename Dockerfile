@@ -2,31 +2,58 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install system dependencies for playwright/chromium
+# --------------------------------------------------
+# Minimal system dependencies
+# --------------------------------------------------
+
 RUN apt-get update && apt-get install -y \
     wget \
-    gnupg \
+    build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements first for Docker layer caching
+# --------------------------------------------------
+# Python dependencies
+# --------------------------------------------------
+
 COPY requirements.txt .
+
+RUN pip install --upgrade pip
+
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Install playwright browsers (for scraping)
-RUN playwright install chromium --with-deps || true
-
+# --------------------------------------------------
 # Copy project
+# --------------------------------------------------
+
 COPY . .
 
-# Create data directory
+# --------------------------------------------------
+# Ensure chroma directory exists
+# --------------------------------------------------
+
 RUN mkdir -p data/chroma
 
-# Expose port
-EXPOSE 8000
+# --------------------------------------------------
+# Environment
+# --------------------------------------------------
 
+ENV PYTHONUNBUFFERED=1
+
+# --------------------------------------------------
+# Render dynamic port
+# --------------------------------------------------
+
+EXPOSE 10000
+
+# --------------------------------------------------
 # Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=3 \
-  CMD wget -qO- http://localhost:8000/health || exit 1
+# --------------------------------------------------
 
-# Start command
-CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=3 \
+  CMD wget -qO- http://localhost:10000/health || exit 1
+
+# --------------------------------------------------
+# Start app
+# --------------------------------------------------
+
+CMD ["sh", "-c", "python -m uvicorn api.main:app --host 0.0.0.0 --port ${PORT:-10000}"]
