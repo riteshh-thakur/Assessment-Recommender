@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: shl-recommender
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: |
+      pip install -r requirements.txt
+      python -m scripts.scrape_catalog
+      python -m scripts.build_index
+    startCommand: uvicorn api.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GROQ_MODEL
+        value: llama-3.3-70b-versatile
+      - key: CATALOG_JSON_PATH
+        value: ./data/catalog.json
+      - key: CHROMA_PERSIST_DIR
+        value: ./data/chroma
+      - key: EMBED_MODEL
+        value: all-MiniLM-L6-v2
+      - key: LOG_LEVEL
+        value: INFO
+    healthCheckPath: /health
+    autoDeploy: false
